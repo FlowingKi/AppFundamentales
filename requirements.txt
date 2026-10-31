@@ -1,0 +1,6 @@
+fredapi
+yfinance
+pandas
+plotly
+streamlit
+streamlit-autorefresh
