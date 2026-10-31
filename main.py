@@ -19,7 +19,7 @@ from data.cache import load_all
 from signals.spreads import calculate_spreads
 from signals.regime import get_regime_series, assign_regime, calculate_regime_score
 from signals.imbalances import detect_imbalances
-from views import historical, now, imbalances_view, log_view
+from views import historical, now, imbalances_view, log_view, candles_view
 from config import REFRESH_INTERVAL_SEC
 
 
@@ -59,8 +59,9 @@ if data_ok:
     imbalances = detect_imbalances(df)
     last_refresh = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    tab_hist, tab_now, tab_imb, tab_log = st.tabs([
+    tab_hist, tab_candles, tab_now, tab_imb, tab_log = st.tabs([
         "📈 HISTÓRICO",
+        "🕯️ VELAS",
         "⚡ NOW",
         f"🔍 IMBALANCES ({len(imbalances)})",
         "📋 LOG",
@@ -68,6 +69,9 @@ if data_ok:
 
     with tab_hist:
         historical.render(df, regime_series)
+
+    with tab_candles:
+        candles_view.render(df)
 
     with tab_now:
         now.render(df, current_regime, last_refresh)
