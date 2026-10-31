@@ -128,8 +128,9 @@ def render(df: pd.DataFrame, regime_series: pd.Series):
         margin=dict(l=0, r=0, t=10, b=0),
         legend=dict(orientation="h", y=-0.1),
         hovermode="x unified",
+        dragmode="pan",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": True})
 
     # Regime bar
     if regime_series is not None and not regime_series.empty:

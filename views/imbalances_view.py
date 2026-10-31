@@ -112,8 +112,8 @@ def render(df: pd.DataFrame, imbalances: list[dict]):
                             if exp:
                                 st.metric("Correlación esperada", f"{exp:.2f}")
 
-                fig.update_layout(height=300, margin=dict(l=0,r=0,t=10,b=0), hovermode="x unified")
-                st.plotly_chart(fig, use_container_width=True)
+                fig.update_layout(height=300, margin=dict(l=0,r=0,t=10,b=0), hovermode="x unified", dragmode="pan")
+                st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": True})
 
             # Detail row
             dc1, dc2, dc3 = st.columns(3)
