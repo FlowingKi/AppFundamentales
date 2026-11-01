@@ -48,7 +48,8 @@ _FRED_RANGES = {"3M": 63, "6M": 126, "1Y": 252, "3Y": 756, "MAX": None}
 def render(df: pd.DataFrame):
     st.subheader("Velas / Intraday")
 
-    label = st.selectbox("Activo", list(_ASSETS.keys()), key="candle_asset")
+    _default = next(i for i, k in enumerate(_ASSETS.keys()) if "ZN=F" in k)
+    label = st.selectbox("Activo", list(_ASSETS.keys()), index=_default, key="candle_asset")
     kind, ticker_or_col, descripcion = _ASSETS[label]
 
     # ── FRED yield → línea diaria ─────────────────────────────────────────────
