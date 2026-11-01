@@ -5,6 +5,8 @@ import pandas as pd
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from signals.regime import calculate_regime_score, score_variable, _dxy_trend, _hy_trend_col
+from config import REGIME_THRESHOLDS, REGIME_VIX_THRESHOLDS
 
 _REGIME_EMOJI = {
     "EUFORIA":    "💚 EUFORIA",
@@ -101,6 +103,7 @@ def render(df: pd.DataFrame, regime: str, last_refresh: str):
         ("CURVE_2_10",   "Curva 2-10"),
         ("REAL_YIELD",   "Real Yield"),
         ("HY",           "HY spread"),
+        ("BAA10Y",       "BAA10Y"),
         ("SPREAD_HY_IG", "HY-IG"),
     ]
 
@@ -128,3 +131,45 @@ def render(df: pd.DataFrame, regime: str, last_refresh: str):
         with c3:
             sparkline_color = "#4fc3f7" if not pd.isna(delt) or delt >= 0 else "#f44336"
             st.plotly_chart(_sparkline(series, sparkline_color), use_container_width=False)
+
+    # ── Componentes del régimen ───────────────────────────────────────────────
+    st.markdown("##### Por qué este régimen")
+    idx = len(df) - 1
+    row = df.iloc[idx]
+
+    hy_val  = row.get("HY",     float("nan"))
+    baa_val = row.get("BAA10Y", float("nan"))
+    credit_col = "HY" if not pd.isna(hy_val) else "BAA10Y"
+    credit_thr = REGIME_THRESHOLDS["HY"] if credit_col == "HY" else REGIME_THRESHOLDS["BAA10Y"]
+
+    components = [
+        ("Crédito (HY/BAA)", score_variable(hy_val if not pd.isna(hy_val) else baa_val, credit_thr)),
+        ("Curva 2-10",        score_variable(row.get("CURVE_2_10", float("nan")), REGIME_THRESHOLDS["CURVE"])),
+        ("Real Yield",        score_variable(row.get("REAL_YIELD",  float("nan")), REGIME_THRESHOLDS["REAL10Y"])),
+        ("VIX",               score_variable(row.get("VIX",         float("nan")), REGIME_VIX_THRESHOLDS)),
+        ("DXY tendencia",     _dxy_trend(df, idx)),
+        ("Crédito tendencia", _hy_trend_col(df, idx, credit_col)),
+    ]
+
+    cols = st.columns(len(components))
+    for (name, score), col in zip(components, cols):
+        if pd.isna(score):
+            arrow, color = "—", "#888"
+        elif score >= 1.0:
+            arrow, color = "▲▲", "#00c853"
+        elif score > 0:
+            arrow, color = "▲", "#69f0ae"
+        elif score == 0:
+            arrow, color = "●", "#ffeb3b"
+        elif score > -1.0:
+            arrow, color = "▼", "#ff9800"
+        else:
+            arrow, color = "▼▼", "#f44336"
+        col.markdown(
+            f"<div style='text-align:center'>"
+            f"<div style='font-size:0.75em;color:#aaa'>{name}</div>"
+            f"<div style='font-size:1.6em;color:{color}'>{arrow}</div>"
+            f"<div style='font-size:0.85em'>{score:+.1f}</div>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )

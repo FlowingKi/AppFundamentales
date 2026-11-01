@@ -31,11 +31,13 @@ FRED_SERIES = {
 
 # ── Tickers yfinance ──────────────────────────────────────────────────────────
 YF_TICKERS = {
-    "DXY":  "DX-Y.NYB",
-    "GOLD": "GC=F",
-    "SPY":  "SPY",
-    "QQQ":  "QQQ",
-    "VIX":  "^VIX",
+    "DXY":      "DX-Y.NYB",
+    "GOLD":     "GC=F",
+    "SPY":      "SPY",
+    "QQQ":      "QQQ",
+    "VIX":      "^VIX",
+    "DE10Y_RT": "DE10YT=RR",   # Reuters daily — override FRED mensual cuando disponible
+    "JP10Y_RT": "JP10YT=RR",
 }
 
 # ── Thresholds de régimen (calibrar en Fase 10) ───────────────────────────────
@@ -76,12 +78,21 @@ REGIME_THRESHOLDS = {
 }
 
 REGIME_WEIGHTS = {
-    "HY":       0.30,
-    "CURVE":    0.25,
-    "REAL10Y":  0.20,
-    "DXY_TREND":0.15,
-    "HY_TREND": 0.10,
+    "HY":        0.25,
+    "CURVE":     0.20,
+    "REAL10Y":   0.15,
+    "VIX":       0.20,   # agregado: detecta pánico por volatilidad (ej: carry unwind ago-2024)
+    "DXY_TREND": 0.12,
+    "HY_TREND":  0.08,
 }
+
+REGIME_VIX_THRESHOLDS = [
+    (15.0,  2.0),   # < 15   → calma/euforia
+    (20.0,  1.0),   # 15-20  → normal
+    (30.0,  0.0),   # 20-30  → cautela
+    (40.0, -1.0),   # 30-40  → miedo
+    (99.0, -2.0),   # > 40   → pánico (COVID: 80, ago-2024: 65)
+]
 
 REGIME_LEVELS = [
     ( 1.0, "EUFORIA"),

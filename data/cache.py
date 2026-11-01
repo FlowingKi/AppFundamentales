@@ -64,6 +64,15 @@ def merge_all_sources(fred_df: pd.DataFrame, yf_df: pd.DataFrame) -> pd.DataFram
     if dropped_pct > 5:
         warnings.warn(f"merge_all_sources: inner join dropped {dropped_pct:.1f}% of rows — check date alignment")
 
+    # Prefer Reuters real-time yields over FRED monthly when available
+    for rt_col, base_col in [("DE10Y_RT", "DE10Y"), ("JP10Y_RT", "JP10Y")]:
+        if rt_col in df.columns and df[rt_col].notna().sum() > 20:
+            if base_col in df.columns:
+                df[base_col] = df[rt_col].combine_first(df[base_col])
+            else:
+                df[base_col] = df[rt_col]
+            df.drop(columns=[rt_col], inplace=True)
+
     return df
 
 

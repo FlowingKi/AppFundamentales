@@ -3,7 +3,7 @@ import pandas as pd
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from config import REGIME_THRESHOLDS, REGIME_WEIGHTS, REGIME_LEVELS
+from config import REGIME_THRESHOLDS, REGIME_WEIGHTS, REGIME_LEVELS, REGIME_VIX_THRESHOLDS
 
 
 def score_variable(value: float, thresholds: list[tuple]) -> float:
@@ -68,11 +68,12 @@ def calculate_regime_score(df: pd.DataFrame, idx: int) -> float:
         credit_trend = 0.0
 
     scores = {
-        "HY":       credit_score,
-        "CURVE":    score_variable(row.get("CURVE_2_10", float("nan")), REGIME_THRESHOLDS["CURVE"]),
-        "REAL10Y":  score_variable(row.get("REAL_YIELD", float("nan")), REGIME_THRESHOLDS["REAL10Y"]),
-        "DXY_TREND":_dxy_trend(df, idx),
-        "HY_TREND": credit_trend,
+        "HY":        credit_score,
+        "CURVE":     score_variable(row.get("CURVE_2_10", float("nan")), REGIME_THRESHOLDS["CURVE"]),
+        "REAL10Y":   score_variable(row.get("REAL_YIELD", float("nan")), REGIME_THRESHOLDS["REAL10Y"]),
+        "VIX":       score_variable(row.get("VIX", float("nan")), REGIME_VIX_THRESHOLDS),
+        "DXY_TREND": _dxy_trend(df, idx),
+        "HY_TREND":  credit_trend,
     }
 
     return sum(scores[k] * REGIME_WEIGHTS[k] for k in scores)
